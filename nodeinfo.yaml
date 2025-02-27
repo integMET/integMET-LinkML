@@ -1,0 +1,13 @@
+id: https://integmet.org/nodeinfo
+name: nodeinfo
+prefixes:
+  nodeinfo: https://integmet.org/nodeinfo/
+  taxonomy: https://identifiers.org/taxonomy:
+  metabolights: https://identifiers.org/metabolights:
+  mw.study: https://identifiers.org/mw.study:
+classes:
+  Node:
+    attributes:
+      id:
+        identifier: true
+      
