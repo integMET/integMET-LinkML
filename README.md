@@ -1,1 +1,1 @@
-# integmet-rdf
+# integmet-linkml
