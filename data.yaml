@@ -1,0 +1,14 @@
+persons:
+  - id: ex:person_1
+    name: Alice
+    age: 30
+  - id: ex:person_2
+    name: Bob
+    age: 25
+
+organizations:
+  - id: ex:org_1
+    name: AcmeCorp
+    members:
+      - ex:person_1
+      - ex:person_2
