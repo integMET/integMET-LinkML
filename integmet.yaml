@@ -1,0 +1,57 @@
+id: http://integmet.org/example
+name: example
+version: 1.0.0
+description: An integMET LinkML schema.
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ex: https://example.org/
+  taxonomy: https://identifiers.org/taxonomy
+  metabolights: https://identifiers.org/metabolights
+  mw.study: https://identifiers.org/mw.study
+default_curi_maps:
+  - semweb_context
+imports:
+  - linkml:types
+default_prefix: ex
+default_range: string
+
+# Define your classes and their attributes
+classes:
+  Person:
+    attributes:
+      id:
+        identifier: true
+      name:
+        required: true
+        description:
+          name of the person
+      age:
+        range: integer
+        minimum_value: 0
+        maximum_value: 200
+
+  Organization:
+    description: An organization with a name and its members.
+    attributes:
+      id:
+        identifier: true
+        description: Unique identifier for the organization.
+      name:
+        description: Official name of the organization.
+      members:
+        description: People who are members of this organization.
+        range: Person
+        multivalued: true
+
+  Container:
+    tree_root: true
+    attributes:
+      persons:
+        multivalued: true
+        inlined_as_list: true
+        range: Person
+      organizations:
+        multivalued: true
+        inlined_as_list: true
+        range: Organization
+        
