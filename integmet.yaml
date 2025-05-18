@@ -16,32 +16,90 @@ default_prefix: ex
 default_range: string
 
 # Define your classes and their attributes
-classes:
-  Person:
+classes:  
+  ContingencyTable:
+    description: A table of contingencies.
     attributes:
       id:
         identifier: true
-      name:
-        required: true
-        description:
-          name of the person
-      age:
-        range: integer
-        minimum_value: 0
-        maximum_value: 200
+      dp1updp2up:
+        description: The contingency table for dp1updp2up.
+        range: Metabolite
+      dp1downdp2up:
+        description: The contingency table for dp1downdp2up.
+        range: Metabolite
+      dp1updp2down:
+        description: The contingency table for dp1updp2down.
+        range: Metabolite
+      dp1downdp2down:
+        description: The contingency table for dp1downdp2down.
+        range: Metabolite
+      dp1:
+        description: The differential profile 1.
+        range: DiffProfile
+      dp2:
+        description: The differential profile 2.
+        range: DiffProfile
+      upregulatethreshold:
+        description: Metabolites in DiffProfile with ratio greater this value are classified into the dpup group.
+        range: float
+      downregulatethreshold:
+        description: Metabolites in DiffProfile with ratio lower this value are classified into the dpdown group.
+        range: float
+      dp1upmetabolite:
+        description: The differential profile 1 upregulated metabolite.
+        range: Metabolite
+      dp1downmetabolite:
+        description: The differential profile 1 downregulated metabolite.
+        range: Metabolite
+      dp2upmetabolite:
+        description: The differential profile 2 upregulated metabolite.
+        range: Metabolite
+      dp2downmetabolite:
+        description: The differential profile 2 downregulated metabolite.
+        range: Metabolite      
 
-  Organization:
-    description: An organization with a name and its members.
+  Metabolite:
+    description: A metabolite with a name and its identifiers.
     attributes:
       id:
         identifier: true
-        description: Unique identifier for the organization.
+      inchikey:
+        description: InChIKey of the metabolite.
+
+  DiffProfile:
+    description: A series of expression ratio of metabolites.
+    attributes:
+      id:
+        identifier: true
       name:
-        description: Official name of the organization.
-      members:
-        description: People who are members of this organization.
-        range: Person
-        multivalued: true
+        description: Name of the differential profile.
+      metabolite:
+        description: The metabolite associated with this differential profile.
+        range: Metabolite
+      ratio:
+        description: The ratio of the differential profile.
+        range: float
+      ratio_numerator_sample:
+        description: The numerator sample of the ratio.
+        range: Sample
+      ratio_denominator_sample:
+        description: The denominator sample of the ratio.
+        range: Sample
+
+  Sample:
+    description: A sample with a name and its identifiers.
+    attributes:
+      id:
+        identifier: true
+      name:
+        description: Name of the sample.
+      metabolite:
+        description: The metabolite associated with this sample.
+        range: Metabolite
+      expression:
+        description: The expression of the sample.
+        range: float
 
   Container:
     tree_root: true
@@ -49,9 +107,16 @@ classes:
       persons:
         multivalued: true
         inlined_as_list: true
-        range: Person
+        range: Sample
       organizations:
         multivalued: true
         inlined_as_list: true
-        range: Organization
-        
+        range: DiffProfile
+      contingency_tables:
+        multivalued: true
+        inlined_as_list: true
+        range: ContingencyTable
+      metabolites:
+        multivalued: true
+        inlined_as_list: true
+        range: Metabolite
