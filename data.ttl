@@ -1,0 +1,66 @@
+@prefix itgmtdp: <https://integmet.org/dp/> .
+@prefix itgmtmet: <https://integmet.org/met/> .
+@prefix metabolights: <https://identifiers.org/metabolights> .
+@prefix mw.study: <https://identifiers.org/mw.study> .
+@prefix ns1: <http://integmet.org/> .
+
+itgmtdp:diffprofile_1 a ns1:DiffProfile ;
+    ns1:factor1 "the first factor of MTBLS47" ;
+    ns1:factor2 "the second factor of MTBLS47" ;
+    ns1:metabolite itgmtmet:metabolite_1,
+        itgmtmet:metabolite_2,
+        itgmtmet:metabolite_3 ;
+    ns1:name "hogehoge" ;
+    ns1:study metabolights:MTBLS47 .
+
+itgmtdp:diffprofile_2 a ns1:DiffProfile ;
+    ns1:factor1 "the first factor of ST000900" ;
+    ns1:factor2 "the second factor of ST000900" ;
+    ns1:metabolite itgmtmet:metabolite_4,
+        itgmtmet:metabolite_5,
+        itgmtmet:metabolite_6 ;
+    ns1:name "foobarbaz" ;
+    ns1:study mw.study:ST000900 .
+
+metabolights:MTBLS47 a ns1:Study ;
+    ns1:name "Metabolomic Characterization of Knock-Out Mutants in Arabidopsis - Development of a Metabolite Profiling Database for Knock-Out Mutants in Arabidopsis (MeKO)" .
+
+mw.study:ST000900 a ns1:Study ;
+    ns1:name "Evidence that the metabolite repair enzyme NAD(P)HX epimerase has a moonlighting function" .
+
+itgmtmet:metabolite_1 a ns1:Metabolite ;
+    ns1:inchikey "VUQLHQFKACOHNZ-LURJTMIESA-N" ;
+    ns1:ratio "1.5" .
+
+itgmtmet:metabolite_2 a ns1:Metabolite ;
+    ns1:inchikey "NMDWGEGFJUBKLB-YFKPBYRVSA-N" ;
+    ns1:ratio "2.0" .
+
+itgmtmet:metabolite_3 a ns1:Metabolite ;
+    ns1:inchikey "JZJYQKXQFJYVQH-UHFFFAOYSA-N" ;
+    ns1:ratio "0.5" .
+
+itgmtmet:metabolite_4 a ns1:Metabolite ;
+    ns1:inchikey "XQKZJYQFJYVQH-UHFFFAOYSA-N" ;
+    ns1:ratio "1.0" .
+
+itgmtmet:metabolite_5 a ns1:Metabolite ;
+    ns1:inchikey "BLKFNHOCHNCLII-GHVQHMAVSA-N" ;
+    ns1:ratio "1.2" .
+
+itgmtmet:metabolite_6 a ns1:Metabolite ;
+    ns1:inchikey "WMQMIOYQXNRROC-LURJTMIESA-N" ;
+    ns1:ratio "0.8" .
+
+[] a ns1:Container ;
+    ns1:diffprofiles itgmtdp:diffprofile_1,
+        itgmtdp:diffprofile_2 ;
+    ns1:metabolites itgmtmet:metabolite_1,
+        itgmtmet:metabolite_2,
+        itgmtmet:metabolite_3,
+        itgmtmet:metabolite_4,
+        itgmtmet:metabolite_5,
+        itgmtmet:metabolite_6 ;
+    ns1:studies metabolights:MTBLS47,
+        mw.study:ST000900 .
+

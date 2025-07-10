@@ -1,63 +1,44 @@
-id: http://integmet.org/example
-name: example
+id: http://integmet.org/
+name: integMET
+title: integMET LinkML Schema
 version: 1.0.0
 description: An integMET LinkML schema.
 prefixes:
   linkml: https://w3id.org/linkml/
-  ex: https://example.org/
-  taxonomy: https://identifiers.org/taxonomy
+  itgmtdp: https://integmet.org/dp/
+  itgmtmet: https://integmet.org/met/
+  itgmtstudy: https://integmet.org/study/
   metabolights: https://identifiers.org/metabolights
   mw.study: https://identifiers.org/mw.study
 default_curi_maps:
   - semweb_context
 imports:
   - linkml:types
-default_prefix: ex
+# default_prefix: itgmtdp
 default_range: string
 
 # Define your classes and their attributes
-classes:  
-  ContingencyTable:
-    description: A table of contingencies.
+classes:
+  DiffProfile:
+    description: A series of expression ratio of metabolites.
     attributes:
       id:
         identifier: true
-      dp1updp2up:
-        description: The contingency table for dp1updp2up.
+      name:
+        description: Name of the differential profile.
+      study:
+        description: The study associated with this differential profile.
+        range: Study
+      factor1:
+        description: The first factor for the differential profile.
+        range: string
+      factor2:
+        description: The second factor for the differential profile.
+        range: string
+      metabolite:
+        description: The metabolite associated with this differential profile.
         range: Metabolite
-      dp1downdp2up:
-        description: The contingency table for dp1downdp2up.
-        range: Metabolite
-      dp1updp2down:
-        description: The contingency table for dp1updp2down.
-        range: Metabolite
-      dp1downdp2down:
-        description: The contingency table for dp1downdp2down.
-        range: Metabolite
-      dp1:
-        description: The differential profile 1.
-        range: DiffProfile
-      dp2:
-        description: The differential profile 2.
-        range: DiffProfile
-      upregulatethreshold:
-        description: Metabolites in DiffProfile with ratio greater this value are classified into the dpup group.
-        range: float
-      downregulatethreshold:
-        description: Metabolites in DiffProfile with ratio lower this value are classified into the dpdown group.
-        range: float
-      dp1upmetabolite:
-        description: The differential profile 1 upregulated metabolite.
-        range: Metabolite
-      dp1downmetabolite:
-        description: The differential profile 1 downregulated metabolite.
-        range: Metabolite
-      dp2upmetabolite:
-        description: The differential profile 2 upregulated metabolite.
-        range: Metabolite
-      dp2downmetabolite:
-        description: The differential profile 2 downregulated metabolite.
-        range: Metabolite      
+        multivalued: true
 
   Metabolite:
     description: A metabolite with a name and its identifiers.
@@ -66,57 +47,29 @@ classes:
         identifier: true
       inchikey:
         description: InChIKey of the metabolite.
-
-  DiffProfile:
-    description: A series of expression ratio of metabolites.
-    attributes:
-      id:
-        identifier: true
-      name:
-        description: Name of the differential profile.
-      metabolite:
-        description: The metabolite associated with this differential profile.
-        range: Metabolite
       ratio:
-        description: The ratio of the differential profile.
-        range: float
-      ratio_numerator_sample:
-        description: The numerator sample of the ratio.
-        range: Sample
-      ratio_denominator_sample:
-        description: The denominator sample of the ratio.
-        range: Sample
+        description: Ratio of the metabolite.
 
-  Sample:
-    description: A sample with a name and its identifiers.
+  Study:
+    description: A Study with a name and its identifiers.
     attributes:
       id:
         identifier: true
       name:
-        description: Name of the sample.
-      metabolite:
-        description: The metabolite associated with this sample.
-        range: Metabolite
-      expression:
-        description: The expression of the sample.
-        range: float
+        description: Name of the study.
 
   Container:
     tree_root: true
     attributes:
-      persons:
-        multivalued: true
-        inlined_as_list: true
-        range: Sample
-      organizations:
+      diffprofiles:
         multivalued: true
         inlined_as_list: true
         range: DiffProfile
-      contingency_tables:
-        multivalued: true
-        inlined_as_list: true
-        range: ContingencyTable
       metabolites:
         multivalued: true
         inlined_as_list: true
         range: Metabolite
+      studies:
+        multivalued: true
+        inlined_as_list: true
+        range: Study

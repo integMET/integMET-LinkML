@@ -1,14 +1,45 @@
-persons:
-  - id: ex:person_1
-    name: Alice
-    age: 30
-  - id: ex:person_2
-    name: Bob
-    age: 25
+diffprofiles:
+  - id: itgmtdp:diffprofile_1
+    name: hogehoge
+    study: metabolights:MTBLS47
+    factor1: the first factor of MTBLS47
+    factor2: the second factor of MTBLS47
+    metabolite:
+      - itgmtmet:metabolite_1
+      - itgmtmet:metabolite_2
+      - itgmtmet:metabolite_3
+  - id: itgmtdp:diffprofile_2
+    name: foobarbaz
+    study: mw.study:ST000900
+    factor1: the first factor of ST000900
+    factor2: the second factor of ST000900
+    metabolite:
+      - itgmtmet:metabolite_4
+      - itgmtmet:metabolite_5
+      - itgmtmet:metabolite_6
 
-organizations:
-  - id: ex:org_1
-    name: AcmeCorp
-    members:
-      - ex:person_1
-      - ex:person_2
+metabolites:
+  - id: itgmtmet:metabolite_1
+    inchikey: VUQLHQFKACOHNZ-LURJTMIESA-N
+    ratio: "1.5"
+  - id: itgmtmet:metabolite_2
+    inchikey: NMDWGEGFJUBKLB-YFKPBYRVSA-N
+    ratio: "2.0"
+  - id: itgmtmet:metabolite_3
+    inchikey: JZJYQKXQFJYVQH-UHFFFAOYSA-N
+    ratio: "0.5"
+  - id: itgmtmet:metabolite_4
+    inchikey: XQKZJYQFJYVQH-UHFFFAOYSA-N
+    ratio: "1.0"
+  - id: itgmtmet:metabolite_5
+    inchikey: BLKFNHOCHNCLII-GHVQHMAVSA-N
+    ratio: "1.2"
+  - id: itgmtmet:metabolite_6
+    inchikey: WMQMIOYQXNRROC-LURJTMIESA-N  
+    ratio: "0.8"
+
+studies:
+  - id: metabolights:MTBLS47
+    name: Metabolomic Characterization of Knock-Out Mutants in Arabidopsis - Development of a Metabolite Profiling Database for Knock-Out Mutants in Arabidopsis (MeKO)
+  - id: mw.study:ST000900
+    name: Evidence that the metabolite repair enzyme NAD(P)HX epimerase has a moonlighting function
