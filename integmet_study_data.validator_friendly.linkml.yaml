@@ -1,0 +1,235 @@
+id: https://example.org/integmet/linkml/integmet_study_data_validator_friendly
+name: integmet_study_data_validator_friendly
+title: Validator-friendly LinkML schema for IntegMet study data
+description: >-
+  A validator-friendly LinkML schema derived from the uploaded JSON-LD graph.
+  This version is intentionally normalized for easier validation with LinkML:
+  heterogeneous @graph nodes are split into typed top-level collections,
+  @type is not required in instance data, and JSON-LD reference wrappers such as
+  {"@id": "..."} are flattened to plain uriorcurie values.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+prefixes:
+  linkml: https://w3id.org/linkml/
+  schema: https://schema.org/
+  integmet: https://example.org/integmet/ontology/
+  integmet_study: https://127.0.0.1:5000/studies/
+  integmet_catinfo: https://example.org/integmet/category-info/
+  ex: https://example.org/integmet/
+  dcterms: http://purl.org/dc/terms/
+  dcat: http://www.w3.org/ns/dcat#
+  nfo: http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#
+  chmo: http://purl.obolibrary.org/obo/CHMO_
+  GO: "https://identifiers.org/GO:"
+  MS: http://purl.obolibrary.org/obo/MS_
+  mesh: "https://identifiers.org/mesh:"
+  metabolights: "https://identifiers.org/metabolights:"
+  mwstudy: "https://identifiers.org/mw.study:"
+  ncbigene: "https://identifiers.org/ncbigene:"
+  taxonomy: "https://identifiers.org/taxonomy:"
+  owl: http://www.w3.org/2002/07/owl#
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  skos: http://www.w3.org/2004/02/skos/core#
+  xsd: http://www.w3.org/2001/XMLSchema#
+default_prefix: integmet
+default_range: string
+imports:
+  - linkml:types
+
+slots:
+  id:
+    identifier: true
+    required: true
+    slot_uri: schema:identifier
+    aliases: ["@id"]
+    range: uriorcurie
+    description: Primary identifier for an entity.
+
+  source_id:
+    slot_uri: schema:isBasedOn
+    range: uriorcurie
+    required: true
+    description: Identifier of the source study or source creative work.
+
+  study_identifier:
+    slot_uri: schema:identifier
+    aliases: [studyIdentifier]
+    range: string
+    required: true
+
+  file_name:
+    slot_uri: nfo:fileName
+    aliases: [fileName]
+    range: string
+    required: true
+
+  measurement_technique:
+    slot_uri: schema:measurementTechnique
+    aliases: [measurementTechnique]
+    range: uriorcurie
+    multivalued: true
+    required: true
+    description: >-
+      One or more measurement-technique CURIEs/URIs. In the original JSON-LD,
+      these may appear as {"@id": ...} objects.
+
+  category:
+    slot_uri: integmet:category
+    range: string
+
+  category_branch:
+    slot_uri: integmet:categoryBranch
+    aliases: [categoryBranch]
+    range: string
+    required: true
+
+  subcategory:
+    slot_uri: integmet:subcategory
+    range: string
+
+  category_info:
+    slot_uri: integmet:categoryInfo
+    aliases: [categoryInfo]
+    range: uriorcurie
+    multivalued: true
+    description: References to StudyCategoryClassification records.
+
+  analysis_group:
+    slot_uri: integmet:analysisGroup
+    aliases: [analysisGroup]
+    range: uriorcurie
+    multivalued: true
+    description: References to AnalysisGroup records.
+
+  description:
+    slot_uri: integmet:derivedDescription
+    range: string
+
+  observations:
+    slot_uri: integmet:observations
+    range: string
+
+  summary:
+    slot_uri: integmet:derivedAbstract
+    range: string
+
+  findings:
+    slot_uri: integmet:findings
+    range: string
+
+  mention:
+    slot_uri: schema:mentions
+    aliases: [goTerm, gene, meshChemical, meshDisease]
+    range: uriorcurie
+    multivalued: true
+    description: >-
+      Flattened mentions. The original JSON-LD uses schema:mentions for several
+      concept categories (e.g. GO, genes, MeSH terms).
+
+  organism:
+    slot_uri: schema:about
+    range: uriorcurie
+    multivalued: true
+
+  unresolved_taxonomy:
+    slot_uri: integmet:unresolvedTaxonomy
+    aliases: [unresolvedTaxonomy]
+    range: string
+    multivalued: true
+
+  is_lipidomics:
+    slot_uri: integmet:isLipidomics
+    aliases: [isLipidomics]
+    range: boolean
+
+  has_retention_index:
+    slot_uri: integmet:hasRetentionIndex
+    aliases: [hasRetentionIndex]
+    range: boolean
+
+classes:
+  IntegmetStudyDataNormalized:
+    tree_root: true
+    description: >-
+      Normalized top-level container for validator-friendly instance documents.
+      Instead of one heterogeneous @graph array, use four typed collections.
+    attributes:
+      studies:
+        range: Study
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
+      analysis_groups:
+        range: AnalysisGroup
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
+      study_category_classifications:
+        range: StudyCategoryClassification
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
+      source_creative_works:
+        range: SourceCreativeWork
+        multivalued: true
+        inlined: true
+        inlined_as_list: true
+
+  NamedEntity:
+    abstract: true
+    slots:
+      - id
+
+  SourceCreativeWork:
+    is_a: NamedEntity
+    class_uri: schema:CreativeWork
+    description: Source study or creative-work node carrying organism references.
+    slots:
+      - organism
+      - unresolved_taxonomy
+
+  AnalysisGroup:
+    is_a: NamedEntity
+    class_uri: integmet:AnalysisGroup
+    description: Analysis-group node describing a data file and technique.
+    slots:
+      - file_name
+      - measurement_technique
+      - study_identifier
+
+  StudyCategoryClassification:
+    is_a: NamedEntity
+    class_uri: integmet:StudyCategoryClassification
+    description: Category classification attached to a study.
+    slots:
+      - category
+      - category_branch
+      - subcategory
+
+  Study:
+    is_a: NamedEntity
+    class_uri: schema:Dataset
+    description: Primary integrated study record.
+    slots:
+      - source_id
+      - study_identifier
+      - category_info
+      - description
+      - observations
+      - summary
+      - findings
+      - mention
+      - analysis_group
+      - is_lipidomics
+      - has_retention_index
+
+settings:
+  permissive: false
+
+annotations:
+  validator_notes: >-
+    Expected instance normalization from the original JSON-LD:
+    (1) drop @context and @type,
+    (2) split @graph into the four typed collections above,
+    (3) replace reference objects such as {"@id": "X"} with "X",
+    (4) if measurementTechnique is a single object in JSON-LD, normalize it to a one-element list.
