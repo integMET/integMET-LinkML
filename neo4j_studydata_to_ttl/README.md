@@ -1,5 +1,7 @@
 # Neo4j JSON to RDF Converter and TTL to RDF-config YAML Generator
 
+---
+
 ## Neo4j JSON to RDF Converter Overview
 
 This repository contains a Python script that converts Neo4j-derived JSON data into RDF and generates a matching ontology file.
@@ -92,6 +94,8 @@ Some namespace URIs in the script are marked with comments such as `need to chan
 
 Before publishing or reusing this code, you should review and update these URIs as needed.
 
+---
+
 ## RDF-config YAML Generator Overview 
 
 This tool is intended for cases such as the following:
@@ -145,7 +149,6 @@ This cardinality is an empirical estimate based on the supplied data TTL. It is 
 2. `rdfs:label`
 3. fallback wording derived from local names
 
----
 ## Usage
 
 Edit the configuration block at the top of `ttl_to_rdfconfig.py`.
@@ -170,4 +173,3 @@ After editing the settings, run:
 python ttl_to_rdfconfig.py
 ```
 
----
