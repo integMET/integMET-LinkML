@@ -1,0 +1,75 @@
+# Auto-generated from TTL files.
+# Cardinality markers are inferred from observed instance counts in the supplied data TTL.
+# Review subject/object names before using the file in production.
+
+- AnalysisGroup integmet_ag:AN000001 integmet_ag:AN000002 integmet_ag:AN000003:
+  - a: integmet:AnalysisGroup
+  - rdfs:label:
+    - analysis_group_label: "AN000001"@en
+  - dc:identifier:
+    - analysis_group_id: "AN000001"^^xsd:string
+  - nfo:fileName?:
+    - file_name: "AN000001_mwtab_json.json"^^xsd:string
+  - schema:measurementTechnique*:
+    - measurement_technique: "Other"^^xsd:string
+
+- SourceDerivedOrganismAnnotationSet integmet_organn:MTBLS1015_taxonomy integmet_organn:MTBLS103_taxonomy integmet_organn:MTBLS1041_taxonomy:
+  - a: integmet:SourceDerivedOrganismAnnotationSet
+  - rdfs:label:
+    - source_derived_organism_annotation_set_label: "MTBLS10 organism annotation set"@en
+  - dc:source:
+    - source: metabolights:MTBLS10
+  - integmet:organism*:
+    - organism: taxonomy:10009
+  - integmet:unresolvedTaxonomy?:
+    - unresolved_taxonomy: "TaxonId:Algae"^^xsd:string
+  - prov:hadPrimarySource:
+    - had_primary_source: metabolights:MTBLS10
+
+- Study integmet_study:MTBLS1 integmet_study:MTBLS10 integmet_study:MTBLS100:
+  - a:
+    - dcat:Dataset
+    - integmet:Study
+  - rdfs:label:
+    - study_label: "MTBLS1"@en
+  - dc:identifier:
+    - study_id: "MTBLS1"^^xsd:string
+  - prov:wasDerivedFrom:
+    - was_derived_from: metabolights:MTBLS1
+  - dc:source:
+    - source_2: metabolights:MTBLS1
+  - integmet:analysisGroup*:
+    - analysis_group: AnalysisGroup
+  - integmet:categoryInfo?:
+    - study_category_classification: StudyCategoryClassification
+  - integmet:derivedAbstract?:
+    - derived_abstract: "1-deoxysphingolipids affect cancer cell growth and endocytosis."@en
+  - integmet:findings?:
+    - findings: "1,092 structures and 344 formulas assigned to 3,604 metabolite ions."@en
+  - integmet:graphGroup?:
+    - graph_group: "Animalia (without H.sapiens)"@en
+  - integmet:hasAnnotatedGOTerm*:
+    - has_annotated_go_term: GO:0000045
+  - integmet:hasAnnotatedMeSHTerm*:
+    - has_annotated_me_sh_term: mesh:C000015
+  - integmet:hasAnnotatedNCBIGene*:
+    - has_annotated_ncbi_gene: ncbigene:1
+  - integmet:hasAnnotatedOMIMEntry?:
+    - has_annotated_omim_entry: omim:120970
+  - integmet:hasRetentionIndex?:
+    - has_retention_index_flag: true
+  - integmet:isLipidomics?:
+    - is_lipidomics_flag: true
+  - integmet:observations?:
+    - observations: "1-deoxysphingolipid synthesis in cancer cells"@en
+  - integmet:organismAnnotation?:
+    - source_derived_organism_annotation_set: SourceDerivedOrganismAnnotationSet
+
+- StudyCategoryClassification integmet_catinfo_res:MTBLS1 integmet_catinfo_res:MTBLS10 integmet_catinfo_res:MTBLS100:
+  - a: integmet:StudyCategoryClassification
+  - integmet:category?:
+    - category: "Brain and Nervous System Cancers"@en
+  - integmet:categoryBranch:
+    - category_branch: "Chemicals and Drugs"@en
+  - integmet:subcategory?:
+    - subcategory: "Acute Inflammation"@en
