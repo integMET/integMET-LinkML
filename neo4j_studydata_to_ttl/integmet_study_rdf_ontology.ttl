@@ -1,5 +1,5 @@
+@prefix dc: <http://purl.org/dc/terms/> .
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix integmet: <https://example.org/integmet/ontology/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -72,7 +72,7 @@ integmet:hasAnnotatedGOTerm a owl:ObjectProperty ;
     rdfs:domain integmet:Study ;
     rdfs:isDefinedBy integmet: ;
     rdfs:range rdfs:Resource ;
-    rdfs:subPropertyOf dcterms:subject .
+    rdfs:subPropertyOf dc:subject .
 
 integmet:hasAnnotatedMeSHTerm a owl:ObjectProperty ;
     rdfs:label "has annotated MeSH term"@en ;
@@ -80,7 +80,7 @@ integmet:hasAnnotatedMeSHTerm a owl:ObjectProperty ;
     rdfs:domain integmet:Study ;
     rdfs:isDefinedBy integmet: ;
     rdfs:range rdfs:Resource ;
-    rdfs:subPropertyOf dcterms:subject .
+    rdfs:subPropertyOf dc:subject .
 
 integmet:hasAnnotatedNCBIGene a owl:ObjectProperty ;
     rdfs:label "has annotated NCBI Gene"@en ;
@@ -88,7 +88,7 @@ integmet:hasAnnotatedNCBIGene a owl:ObjectProperty ;
     rdfs:domain integmet:Study ;
     rdfs:isDefinedBy integmet: ;
     rdfs:range rdfs:Resource ;
-    rdfs:subPropertyOf dcterms:subject .
+    rdfs:subPropertyOf dc:subject .
 
 integmet:hasAnnotatedOMIMEntry a owl:ObjectProperty ;
     rdfs:label "has annotated OMIM entry"@en ;
@@ -96,7 +96,7 @@ integmet:hasAnnotatedOMIMEntry a owl:ObjectProperty ;
     rdfs:domain integmet:Study ;
     rdfs:isDefinedBy integmet: ;
     rdfs:range rdfs:Resource ;
-    rdfs:subPropertyOf dcterms:subject .
+    rdfs:subPropertyOf dc:subject .
 
 integmet:hasRetentionIndex a owl:DatatypeProperty ;
     rdfs:label "has retention index"@en ;
@@ -170,10 +170,10 @@ integmet:Study a owl:Class ;
 
 integmet: a owl:Ontology ;
     rdfs:label "IntegMet ontology"@en ;
-    dcterms:created "2026-03-27"^^xsd:date ;
-    dcterms:creator "IntegMet project"@en ;
-    dcterms:description "Ontology for IntegMet-specific study metadata, derived textual summaries, category assignments, annotation links, provenance, and related structural relations."@en ;
-    dcterms:title "IntegMet Ontology"@en ;
+    dc:created "2026-03-27"^^xsd:date ;
+    dc:creator "IntegMet project"@en ;
+    dc:description "Ontology for IntegMet-specific study metadata, derived textual summaries, category assignments, annotation links, provenance, and related structural relations."@en ;
+    dc:title "IntegMet Ontology"@en ;
     rdfs:comment "Custom RDF vocabulary used for IntegMet-specific study metadata and structural relations."@en ;
     owl:versionInfo "0.1.9" .
 

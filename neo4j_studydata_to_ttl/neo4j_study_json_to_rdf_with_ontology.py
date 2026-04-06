@@ -1,3 +1,4 @@
+from pathlib import Path
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
@@ -21,16 +22,16 @@ import re
 import sys
 from collections import defaultdict
 
-from rdflib import Graph, Namespace, Literal, URIRef, query
+from rdflib import Graph, Namespace, Literal, URIRef
 from rdflib.namespace import RDF, RDFS, OWL, XSD
 
 SCHEMA = Namespace("https://schema.org/")
-DCTERMS = Namespace("http://purl.org/dc/terms/")
+DC = Namespace("http://purl.org/dc/terms/")
 DCAT = Namespace("http://www.w3.org/ns/dcat#")
 PROV = Namespace("http://www.w3.org/ns/prov#")
 NFO = Namespace("http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#")
-INTEGMET = Namespace("https://example.org/integmet/ontology/") # need to change
-INTEGMET_STUDY = Namespace("https://integmet.org/studies/") # need to check
+INTEGMET = Namespace("https://example.org/integmet/ontology/")
+INTEGMET_STUDY = Namespace("https://integmet.org/studies/")
 MESH = Namespace("https://identifiers.org/mesh:")
 NCBIGENE = Namespace("https://identifiers.org/ncbigene:")
 OMIM = Namespace("https://identifiers.org/omim:")
@@ -48,6 +49,9 @@ ANALYTICS_GROUP_LABEL = "AnalyticsGroup"
 ANALYTICS_GROUP_TO_STUDY_REL = "BELONGS_TO_STUDY"
 ANALYTICS_TYPE_REL = "HAS_ANALYSIS_TYPE"
 
+INPUT_JSON = "/mnt/data/neo4j_query_table_data_2026-4-1.json"
+DEFAULT_OUTPUT_BASE = "/mnt/data/study_integmet_annotations_multiformat_grouped"
+
 ONTOLOGY_VERSION = "0.1.9"
 
 
@@ -58,7 +62,7 @@ def bind_prefixes(g: Graph) -> None:
     g.bind("integmet_catinfo_res", CATEGORY_INFO_RES)
     g.bind("integmet_organn", ORGANISM_ANNOTATION_RES)
     g.bind("schema", SCHEMA, override=True, replace=True)
-    g.bind("dcterms", DCTERMS)
+    g.bind("dc", DC)
     g.bind("dcat", DCAT)
     g.bind("prov", PROV)
     g.bind("nfo", NFO)
@@ -271,16 +275,24 @@ def add_measurement_technique(graph: Graph, subject, analysis_type_value) -> str
     return "literal"
 
 
+
+def normalize_ttl_prefixes(path: str) -> None:
+    p = Path(path)
+    s = p.read_text(encoding="utf-8")
+    s = s.replace("@prefix dc1: <http://purl.org/dc/terms/> .", "@prefix dc: <http://purl.org/dc/terms/> .")
+    s = s.replace("dc1:", "dc:")
+    p.write_text(s, encoding="utf-8")
+
 def build_ontology_graph() -> Graph:
     g = Graph()
     bind_prefixes(g)
 
     ontology = URIRef(str(INTEGMET))
     g.add((ontology, RDF.type, OWL.Ontology))
-    g.add((ontology, DCTERMS.title, Literal("IntegMet Ontology", lang="en")))
-    g.add((ontology, DCTERMS.description, Literal("Ontology for IntegMet-specific study metadata, derived textual summaries, category assignments, annotation links, provenance, and related structural relations.", lang="en")))
-    g.add((ontology, DCTERMS.creator, Literal("IntegMet project", lang="en")))
-    g.add((ontology, DCTERMS.created, Literal("2026-03-27", datatype=XSD.date)))
+    g.add((ontology, DC.title, Literal("IntegMet Ontology", lang="en")))
+    g.add((ontology, DC.description, Literal("Ontology for IntegMet-specific study metadata, derived textual summaries, category assignments, annotation links, provenance, and related structural relations.", lang="en")))
+    g.add((ontology, DC.creator, Literal("IntegMet project", lang="en")))
+    g.add((ontology, DC.created, Literal("2026-03-27", datatype=XSD.date)))
     g.add((ontology, OWL.versionInfo, Literal(ONTOLOGY_VERSION)))
     g.add((ontology, RDFS.label, Literal("IntegMet ontology", lang="en")))
     g.add((ontology, RDFS.comment, Literal("Custom RDF vocabulary used for IntegMet-specific study metadata and structural relations.", lang="en")))
@@ -342,10 +354,10 @@ def build_ontology_graph() -> Graph:
     add_obj_prop(INTEGMET.organismAnnotation, "organism annotation", "Relates an IntegMet study to a source-derived organism annotation set node that captures one or more organism values together with provenance to the cited source project.", INTEGMET.Study, INTEGMET.SourceDerivedOrganismAnnotationSet)
     add_obj_prop(INTEGMET.organism, "organism", "Relates a source-derived organism annotation set to a normalized organism resource, typically an NCBI Taxonomy identifier.", INTEGMET.SourceDerivedOrganismAnnotationSet, RDFS.Resource)
 
-    add_obj_prop(INTEGMET.hasAnnotatedMeSHTerm, "has annotated MeSH term", "Relates an IntegMet study to a MeSH term assigned by annotation or downstream analysis of the source project metadata.", INTEGMET.Study, RDFS.Resource, DCTERMS.subject)
-    add_obj_prop(INTEGMET.hasAnnotatedGOTerm, "has annotated GO term", "Relates an IntegMet study to a Gene Ontology term assigned by annotation or downstream analysis of the source project metadata.", INTEGMET.Study, RDFS.Resource, DCTERMS.subject)
-    add_obj_prop(INTEGMET.hasAnnotatedNCBIGene, "has annotated NCBI Gene", "Relates an IntegMet study to an NCBI Gene resource assigned by annotation or downstream analysis of the source project metadata.", INTEGMET.Study, RDFS.Resource, DCTERMS.subject)
-    add_obj_prop(INTEGMET.hasAnnotatedOMIMEntry, "has annotated OMIM entry", "Relates an IntegMet study to an OMIM entry assigned by annotation or downstream analysis of the source project metadata.", INTEGMET.Study, RDFS.Resource, DCTERMS.subject)
+    add_obj_prop(INTEGMET.hasAnnotatedMeSHTerm, "has annotated MeSH term", "Relates an IntegMet study to a MeSH term assigned by annotation or downstream analysis of the source project metadata.", INTEGMET.Study, RDFS.Resource, DC.subject)
+    add_obj_prop(INTEGMET.hasAnnotatedGOTerm, "has annotated GO term", "Relates an IntegMet study to a Gene Ontology term assigned by annotation or downstream analysis of the source project metadata.", INTEGMET.Study, RDFS.Resource, DC.subject)
+    add_obj_prop(INTEGMET.hasAnnotatedNCBIGene, "has annotated NCBI Gene", "Relates an IntegMet study to an NCBI Gene resource assigned by annotation or downstream analysis of the source project metadata.", INTEGMET.Study, RDFS.Resource, DC.subject)
+    add_obj_prop(INTEGMET.hasAnnotatedOMIMEntry, "has annotated OMIM entry", "Relates an IntegMet study to an OMIM entry assigned by annotation or downstream analysis of the source project metadata.", INTEGMET.Study, RDFS.Resource, DC.subject)
 
     return g
 
@@ -388,7 +400,8 @@ def build_rdf(input_json: str, output_base: str) -> None:
 
         rdf_graph.add((subject, RDF.type, INTEGMET.Study))
         rdf_graph.add((subject, RDF.type, DCAT.Dataset))
-        rdf_graph.add((subject, DCTERMS.identifier, Literal(str(study_id), datatype=XSD.string)))
+        rdf_graph.add((subject, DC.identifier, Literal(str(study_id), datatype=XSD.string)))
+        rdf_graph.add((subject, RDFS.label, Literal(str(study_id), lang="en")))
 
         if source_ns_name == "metabolights":
             source_uri = URIRef(str(METABOLIGHTS) + study_id)
@@ -399,7 +412,7 @@ def build_rdf(input_json: str, output_base: str) -> None:
 
         if source_uri is not None:
             rdf_graph.add((subject, PROV.wasDerivedFrom, source_uri))
-            rdf_graph.add((subject, DCTERMS.source, source_uri))
+            rdf_graph.add((subject, DC.source, source_uri))
 
         add_category_info(rdf_graph, subject, study_id, props)
 
@@ -486,9 +499,10 @@ def build_rdf(input_json: str, output_base: str) -> None:
             organism_set = ORGANISM_ANNOTATION_RES[iri_fragment(f"{study_id}_taxonomy")]
             rdf_graph.add((subject, INTEGMET.organismAnnotation, organism_set))
             rdf_graph.add((organism_set, RDF.type, INTEGMET.SourceDerivedOrganismAnnotationSet))
+            rdf_graph.add((organism_set, RDFS.label, Literal(f"{study_id} organism annotation set", lang="en")))
             if source_uri is not None:
                 rdf_graph.add((organism_set, PROV.hadPrimarySource, source_uri))
-                rdf_graph.add((organism_set, DCTERMS.source, source_uri))
+                rdf_graph.add((organism_set, DC.source, source_uri))
             for suffix in sorted(species_numeric):
                 rdf_graph.add((organism_set, INTEGMET.organism, URIRef(str(TAXONOMY) + suffix)))
             for raw in sorted(species_unresolved):
@@ -514,7 +528,8 @@ def build_rdf(input_json: str, output_base: str) -> None:
             rdf_graph.add((b, RDF.type, INTEGMET.AnalysisGroup))
 
             if analytics_identifier not in (None, ""):
-                rdf_graph.add((b, DCTERMS.identifier, Literal(str(analytics_identifier), datatype=XSD.string)))
+                rdf_graph.add((b, DC.identifier, Literal(str(analytics_identifier), datatype=XSD.string)))
+                rdf_graph.add((b, RDFS.label, Literal(str(analytics_identifier), lang="en")))
 
             if analytics_props.get("FileName") not in (None, ""):
                 rdf_graph.add((b, NFO.fileName, Literal(str(analytics_props["FileName"]), datatype=XSD.string)))
@@ -549,67 +564,25 @@ def build_rdf(input_json: str, output_base: str) -> None:
     ontology_ttl_path = output_base + "_ontology.ttl"
 
     rdf_graph.serialize(destination=ttl_path, format="turtle")
+    normalize_ttl_prefixes(ttl_path)
     rdf_graph.serialize(destination=nt_path, format="nt")
     rdf_graph.serialize(destination=jsonld_path, format="json-ld", indent=2, auto_compact=False)
 
     ontology_graph = build_ontology_graph()
     ontology_graph.serialize(destination=ontology_ttl_path, format="turtle")
+    normalize_ttl_prefixes(ontology_ttl_path)
 
     print(f"Done: {study_count} Study subjects written to {ttl_path}, {nt_path}, {jsonld_path}, and ontology {ontology_ttl_path}")
 
 
 def main():
-    INPUT_JSON = "neo4j_query_table_data_2026-4-3.json"
-    DEFAULT_OUTPUT_BASE = "integmet_study_rdf"
+    # if len(sys.argv) > 2:
+    #     print("Usage: python study_json_to_rdf_with_ontology.py [output_base]")
+    #     sys.exit(1)
 
-    build_rdf(INPUT_JSON, DEFAULT_OUTPUT_BASE)
+    # output_base = sys.argv[1] if len(sys.argv) == 2 else DEFAULT_OUTPUT_BASE
+    build_rdf("neo4j_query_table_data_2026-4-3.json", "integmet_study_rdf")
 
 
 if __name__ == "__main__":
     main()
-
-
-# neo4j query
-
-# MATCH (n:Study)
-# OPTIONAL MATCH (n)-[r1:Metadata_Species|Metadata_MeSH|HAS_GO_ANNOTATION|HAS_DATA]-(m)
-# OPTIONAL MATCH (n)-[r3:BELONGS_TO_STUDY]-(m1:AnalyticsGroup)
-# OPTIONAL MATCH (m1)-[r2:HAS_ANALYSIS_TYPE]-(l)
-
-# WITH
-#   collect(DISTINCT n) + collect(DISTINCT m) + collect(DISTINCT m1) + collect(DISTINCT l) AS allNodes,
-#   collect(DISTINCT r1) + collect(DISTINCT r2) + collect(DISTINCT r3) AS allRels
-
-# WITH
-#   [x IN allNodes WHERE x IS NOT NULL] AS rawNodes,
-#   [x IN allRels WHERE x IS NOT NULL] AS rawRels
-
-# UNWIND rawNodes AS node
-# WITH collect(DISTINCT node) AS nodes, rawRels
-
-# UNWIND rawRels AS rel
-# WITH nodes, collect(DISTINCT rel) AS rels
-
-# RETURN {
-#   nodes: [
-#     node IN nodes |
-#     {
-#       elementId: elementId(node),
-#       identifier: coalesce(node.Nodeid, elementId(node)),
-#       labels: labels(node),
-#       properties: properties(node)
-#     }
-#   ],
-#   relationships: [
-#     rel IN rels |
-#     {
-#       elementId: elementId(rel),
-#       type: type(rel),
-#       startElementId: elementId(startNode(rel)),
-#       endElementId: elementId(endNode(rel)),
-#       startIdentifier: coalesce(startNode(rel).Nodeid, elementId(startNode(rel))),
-#       endIdentifier: coalesce(endNode(rel).Nodeid, elementId(endNode(rel))),
-#       properties: properties(rel)
-#     }
-#   ]
-# } AS graph_json
