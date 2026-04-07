@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 import re
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
-from rdflib import BNode, Graph, Literal, Namespace, RDF, RDFS, OWL, URIRef
+from rdflib import BNode, Graph, Literal, Namespace, OWL, RDF, RDFS, URIRef
 
 # -----------------------------------------------------------------------------
 # User settings
@@ -16,7 +16,7 @@ from rdflib import BNode, Graph, Literal, Namespace, RDF, RDFS, OWL, URIRef
 ONTOLOGY_TTL_PATH = Path("integmet_study_rdf_ontology.ttl")
 DATA_TTL_PATH = Path("integmet_study_rdf.ttl")
 OUTPUT_DIR = Path("integMET")
-EXAMPLES_PER_CLASS = 3
+EXAMPLES_PER_CLASS = 1
 
 DC = Namespace("http://purl.org/dc/elements/1.1/")
 DCT = Namespace("http://purl.org/dc/terms/")
@@ -26,6 +26,7 @@ XSD_INTEGER = URIRef("http://www.w3.org/2001/XMLSchema#integer")
 XSD_DECIMAL = URIRef("http://www.w3.org/2001/XMLSchema#decimal")
 XSD_DOUBLE = URIRef("http://www.w3.org/2001/XMLSchema#double")
 XSD_FLOAT = URIRef("http://www.w3.org/2001/XMLSchema#float")
+XSD_STRING = URIRef("http://www.w3.org/2001/XMLSchema#string")
 
 
 @dataclass
@@ -78,13 +79,10 @@ class TTLToRDFConfig:
             self.graph.add(triple)
 
         self.prefix_map = self._build_prefix_map()
-        self.namespace_manager = self.graph.namespace_manager
         self.class_uris = self._discover_classes()
         self.subject_names = {cls: self._subject_name_for_class(cls) for cls in self.class_uris}
-        self.subject_name_to_class = {v: k for k, v in self.subject_names.items()}
         self.global_object_names: set[str] = set()
         self.subject_models: Optional[List[SubjectModel]] = None
-        self.object_to_subject: Dict[str, str] = {}
 
     def _build_prefix_map(self) -> OrderedDict[str, str]:
         """Preserve prefixes explicitly declared in the source TTL files.
@@ -121,7 +119,7 @@ class TTLToRDFConfig:
     def _discover_classes(self) -> List[URIRef]:
         classes = set(self.ontology.subjects(RDF.type, OWL.Class))
         ontology_class_namespaces = {
-            str(c).rsplit('#', 1)[0] + '#' if '#' in str(c) else str(c).rsplit('/', 1)[0] + '/'
+            str(c).rsplit("#", 1)[0] + "#" if "#" in str(c) else str(c).rsplit("/", 1)[0] + "/"
             for c in classes
         }
         for _, _, cls in self.data.triples((None, RDF.type, None)):
@@ -271,8 +269,8 @@ class TTLToRDFConfig:
     def _property_info(self, instances: Sequence[URIRef], predicate: URIRef) -> PropertyInfo:
         counts = []
         values: List[object] = []
-        for subject in instances:
-            objs = list(self.data.objects(subject, predicate))
+        for s in instances:
+            objs = list(self.data.objects(s, predicate))
             counts.append(len(objs))
             values.extend(objs)
         return PropertyInfo(
@@ -284,15 +282,22 @@ class TTLToRDFConfig:
 
     def _format_literal(self, lit: Literal) -> str:
         value = str(lit)
-        if lit.language:
+
+        # Suppress language tags such as @en and plain string datatype markers
+        # such as ^^xsd:string when writing model.yaml examples.
+        if lit.language or lit.datatype == XSD_STRING:
+            if "\n" in value:
+                return "|\n" + "\n".join(f"        {line}" for line in value.splitlines())
             escaped = value.replace('"', '\\"')
-            return f'"{escaped}"@{lit.language}'
+            return f'"{escaped}"'
+
         if lit.datatype:
-            datatype_qname = self.qname(lit.datatype)
+            dtype_qname = self.qname(lit.datatype)
             if lit.datatype in {XSD_BOOLEAN, XSD_INTEGER, XSD_DECIMAL, XSD_DOUBLE, XSD_FLOAT}:
                 return value
             escaped = value.replace('"', '\\"')
-            return f'"{escaped}"^^{datatype_qname}'
+            return f'"{escaped}"^^{dtype_qname}'
+
         if "\n" in value:
             return "|\n" + "\n".join(f"        {line}" for line in value.splitlines())
         if re.fullmatch(r"-?\d+", value) or re.fullmatch(r"-?\d+\.\d+", value):
@@ -313,55 +318,51 @@ class TTLToRDFConfig:
         return self.label_for(predicate) or self.humanize_identifier(self._local_name(predicate)).lower()
 
     def _candidate_object_name(
-        self,
-        subject_name: str,
-        predicate: URIRef,
-        target_class: Optional[URIRef],
-        sample_value: object,
+        self, subject_name: str, predicate: URIRef, target_class: Optional[URIRef], sample_value: object
     ) -> str:
-        subject_snake = self.to_snake(subject_name)
-        predicate_local = self.to_snake(self._local_name(predicate))
+        subj = self.to_snake(subject_name)
+        pred_local = self.to_snake(self._local_name(predicate))
 
         if predicate == RDFS.label:
-            base = f"{subject_snake}_label"
+            base = f"{subj}_label"
         elif predicate in {DC.identifier, DCT.identifier}:
-            base = f"{subject_snake}_id"
+            base = f"{subj}_id"
         elif target_class is not None:
             base = self.to_snake(self.subject_names[target_class])
         else:
-            predicate_label = self._predicate_label(predicate)
-            predicate_snake = self.to_snake(predicate_label)
+            pred_label = self._predicate_label(predicate)
+            pred_snake = self.to_snake(pred_label)
             if isinstance(sample_value, URIRef):
-                base = predicate_snake or f"{predicate_local}_resource"
+                base = pred_snake or f"{pred_local}_resource"
             elif isinstance(sample_value, Literal) and sample_value.datatype == XSD_BOOLEAN:
-                base = predicate_snake if predicate_snake.endswith("flag") else f"{predicate_snake}_flag"
+                base = pred_snake if pred_snake.endswith("flag") else f"{pred_snake}_flag"
             else:
-                if predicate_snake in {"label", "identifier", "id"}:
-                    base = f"{subject_snake}_{predicate_snake}"
+                if pred_snake in {"label", "identifier", "id"}:
+                    base = f"{subj}_{pred_snake}"
                 else:
-                    base = predicate_snake or f"{subject_snake}_{predicate_local}"
+                    base = pred_snake or f"{subj}_{pred_local}"
 
         candidate = base
-        suffix = 2
+        i = 2
         while candidate in self.global_object_names:
-            candidate = f"{base}_{suffix}"
-            suffix += 1
+            candidate = f"{base}_{i}"
+            i += 1
         self.global_object_names.add(candidate)
         return candidate
 
     def _choose_example_value(self, prop: PropertyInfo) -> Union[object, str]:
         if prop.target_class is not None:
             return self.subject_names[prop.target_class]
-        non_blank = [value for value in prop.values]
+        non_blank = [v for v in prop.values]
         if not non_blank:
             return Literal("")
 
-        def sort_key(value: object) -> Tuple[int, str]:
-            if isinstance(value, Literal):
-                return (0, str(value))
-            if isinstance(value, URIRef):
-                return (1, self.qname(value))
-            return (2, str(value))
+        def sort_key(v: object) -> Tuple[int, str]:
+            if isinstance(v, Literal):
+                return (0, str(v))
+            if isinstance(v, URIRef):
+                return (1, self.qname(v))
+            return (2, str(v))
 
         return sorted(non_blank, key=sort_key)[0]
 
@@ -370,20 +371,19 @@ class TTLToRDFConfig:
             return self.subject_models
 
         self.global_object_names = set()
-        self.object_to_subject = {}
         models: List[SubjectModel] = []
 
-        for class_uri in self.class_uris:
-            instances = self._instances_of(class_uri)
+        for cls in self.class_uris:
+            instances = self._instances_of(cls)
             if not instances:
                 continue
 
-            subject_name = self.subject_names[class_uri]
+            subject_name = self.subject_names[cls]
             sample_instances = instances[: self.examples_per_class]
 
             sample_types = set()
-            for instance in sample_instances:
-                sample_types.update({obj for obj in self.data.objects(instance, RDF.type) if isinstance(obj, URIRef)})
+            for inst in sample_instances:
+                sample_types.update({o for o in self.data.objects(inst, RDF.type) if isinstance(o, URIRef)})
             ordered_types = sorted(sample_types, key=self.qname)
 
             properties: List[ModelProperty] = []
@@ -402,12 +402,11 @@ class TTLToRDFConfig:
                         counts=prop.counts,
                     )
                 )
-                self.object_to_subject[object_name] = subject_name
 
             models.append(
                 SubjectModel(
                     name=subject_name,
-                    class_uri=class_uri,
+                    class_uri=cls,
                     example_instances=sample_instances,
                     rdf_types=ordered_types,
                     properties=properties,
@@ -418,7 +417,10 @@ class TTLToRDFConfig:
         return models
 
     def generate_prefix_yaml(self) -> str:
-        return "\n".join(f"{prefix}: <{namespace}>" for prefix, namespace in self.prefix_map.items()) + "\n"
+        lines = []
+        for prefix, ns in self.prefix_map.items():
+            lines.append(f"{prefix}: <{ns}>")
+        return "\n".join(lines) + "\n"
 
     def generate_model_yaml(self) -> str:
         models = self.build_subject_models()
@@ -430,7 +432,7 @@ class TTLToRDFConfig:
         ]
 
         for model in models:
-            header_examples = " ".join(self.qname(subject) for subject in model.example_instances)
+            header_examples = " ".join(self.qname(s) for s in model.example_instances)
             header = f"- {model.name}{(' ' + header_examples) if header_examples else ''}:"
             lines.append(header)
 
@@ -443,14 +445,14 @@ class TTLToRDFConfig:
                         lines.append(f"    - {self.qname(rdf_type)}")
 
             for prop in model.properties:
-                predicate_text = self.qname(prop.predicate) + prop.cardinality_marker
+                pred_text = self.qname(prop.predicate) + prop.cardinality_marker
                 example_value = prop.example_value
                 example_text = (
                     example_value
                     if isinstance(example_value, str) and prop.target_class is not None
                     else self._format_node(example_value)
                 )
-                lines.append(f"  - {predicate_text}:")
+                lines.append(f"  - {pred_text}:")
                 if isinstance(example_text, str) and example_text.startswith("|\n"):
                     lines.append(f"    - {prop.object_name}: {example_text.splitlines()[0]}")
                     lines.extend(example_text.splitlines()[1:])
@@ -462,14 +464,12 @@ class TTLToRDFConfig:
         return "\n".join(lines).rstrip() + "\n"
 
     def _dataset_name(self) -> str:
-        stem = self.data_path.stem.replace("_", " ").replace("-", " ").strip()
+        stem = self.data_path.stem
+        stem = stem.replace("_", " ").replace("-", " ").strip()
         return self.humanize_identifier(stem)
 
     def _dataset_description(self) -> str:
-        class_labels = [
-            self.label_for(model.class_uri) or self.humanize_identifier(model.name)
-            for model in self.build_subject_models()
-        ]
+        class_labels = [self.label_for(model.class_uri) or self.humanize_identifier(model.name) for model in self.build_subject_models()]
         if class_labels:
             joined = ", ".join(class_labels)
             text = (
@@ -477,10 +477,7 @@ class TTLToRDFConfig:
                 f"{self.ontology_path.name}. Main modeled subjects include {joined}."
             )
         else:
-            text = (
-                f"Auto-generated dataset descriptions derived from {self.data_path.name} and "
-                f"{self.ontology_path.name}."
-            )
+            text = f"Auto-generated dataset descriptions derived from {self.data_path.name} and {self.ontology_path.name}."
         return self.ensure_sentence(text)
 
     def _subject_description(self, model: SubjectModel) -> str:
@@ -498,8 +495,10 @@ class TTLToRDFConfig:
         if prop.target_class is not None:
             target_name = self.subject_names[prop.target_class]
             target_label = self.label_for(prop.target_class) or self.humanize_identifier(target_name).lower()
-            fallback = f"Reference from {subject_label} to {target_label} via {predicate_label}."
-            return self.ensure_sentence(predicate_comment or fallback)
+            base = f"Reference from {subject_label} to {target_label} via {predicate_label}."
+            if predicate_comment:
+                return self.ensure_sentence(predicate_comment)
+            return self.ensure_sentence(base)
 
         if prop.predicate == RDFS.label:
             return self.ensure_sentence(f"Human-readable label for {subject_label}.")
@@ -511,43 +510,30 @@ class TTLToRDFConfig:
 
     def generate_description_yaml(self) -> str:
         models = self.build_subject_models()
-        dataset_description = self._dataset_description().replace('"', '\\"')
         lines = [
             "# Auto-generated from TTL files.",
             "dataset:",
-            f'  name: "{self._dataset_name()}"',
-            f'  description: "{dataset_description}"',
+            f"  name: \"{self._dataset_name()}\"",
+            f"  description: \"{self._dataset_description().replace('\\\"', '\\\\\\\"')}\"",
             "variables:",
         ]
 
         for model in models:
-            subject_description = self._subject_description(model).replace('"', '\\"')
-            lines.append(f'  {model.name}: "{subject_description}"')
+            subject_desc = self._subject_description(model).replace('"', '\\"')
+            lines.append(f"  {model.name}: \"{subject_desc}\"")
             for prop in model.properties:
-                object_description = self._object_description(model, prop)
-                if not object_description:
+                object_desc = self._object_description(model, prop)
+                if not object_desc:
                     continue
-                lines.append(f'  {prop.object_name}: "{object_description.replace("\"", "\\\"")}"')
+                object_desc = object_desc.replace('"', '\\"')
+                lines.append(f"  {prop.object_name}: \"{object_desc}\"")
 
         return "\n".join(lines) + "\n"
 
 
 def main() -> None:
-    ontology_path = ONTOLOGY_TTL_PATH
-    data_path = DATA_TTL_PATH
-    output_dir = OUTPUT_DIR
-
-    if not ontology_path.exists():
-        raise FileNotFoundError(f"Ontology TTL not found: {ontology_path}")
-    if not data_path.exists():
-        raise FileNotFoundError(f"Data TTL not found: {data_path}")
-
-    generator = TTLToRDFConfig(
-        ontology_path=ontology_path,
-        data_path=data_path,
-        examples_per_class=EXAMPLES_PER_CLASS,
-    )
-    output_dir.mkdir(parents=True, exist_ok=True)
+    generator = TTLToRDFConfig(ONTOLOGY_TTL_PATH, DATA_TTL_PATH, examples_per_class=EXAMPLES_PER_CLASS)
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     outputs = {
         "prefix.yaml": generator.generate_prefix_yaml(),
@@ -556,7 +542,7 @@ def main() -> None:
     }
 
     for filename, content in outputs.items():
-        path = output_dir / filename
+        path = OUTPUT_DIR / filename
         path.write_text(content, encoding="utf-8")
         print(f"Wrote {path}")
 

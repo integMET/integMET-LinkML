@@ -2,38 +2,38 @@
 # Cardinality markers are inferred from observed instance counts in the supplied data TTL.
 # Review subject/object names before using the file in production.
 
-- AnalysisGroup integmet_ag:AN000001 integmet_ag:AN000002 integmet_ag:AN000003:
+- AnalysisGroup integmet_ag:AN000001:
   - a: integmet:AnalysisGroup
   - rdfs:label:
-    - analysis_group_label: "AN000001"@en
+    - analysis_group_label: "AN000001"
   - dc:identifier:
-    - analysis_group_id: "AN000001"^^xsd:string
+    - analysis_group_id: "AN000001"
   - nfo:fileName?:
-    - file_name: "AN000001_mwtab_json.json"^^xsd:string
+    - file_name: "AN000001_mwtab_json.json"
   - schema:measurementTechnique*:
-    - measurement_technique: "Other"^^xsd:string
+    - measurement_technique: "Other"
 
-- SourceDerivedOrganismAnnotationSet integmet_organn:MTBLS1015_taxonomy integmet_organn:MTBLS103_taxonomy integmet_organn:MTBLS1041_taxonomy:
+- SourceDerivedOrganismAnnotationSet integmet_organn:MTBLS1015_taxonomy:
   - a: integmet:SourceDerivedOrganismAnnotationSet
   - rdfs:label:
-    - source_derived_organism_annotation_set_label: "MTBLS10 organism annotation set"@en
+    - source_derived_organism_annotation_set_label: "MTBLS10 organism annotation set"
   - dc:source:
     - source: metabolights:MTBLS10
   - integmet:organism*:
     - organism: taxonomy:10009
   - integmet:unresolvedTaxonomy?:
-    - unresolved_taxonomy: "TaxonId:Algae"^^xsd:string
+    - unresolved_taxonomy: "TaxonId:Algae"
   - prov:hadPrimarySource:
     - had_primary_source: metabolights:MTBLS10
 
-- Study integmet_study:MTBLS1 integmet_study:MTBLS10 integmet_study:MTBLS100:
+- Study integmet_study:MTBLS1:
   - a:
     - dcat:Dataset
     - integmet:Study
   - rdfs:label:
-    - study_label: "MTBLS1"@en
+    - study_label: "MTBLS1"
   - dc:identifier:
-    - study_id: "MTBLS1"^^xsd:string
+    - study_id: "MTBLS1"
   - prov:wasDerivedFrom:
     - was_derived_from: metabolights:MTBLS1
   - dc:source:
@@ -43,11 +43,11 @@
   - integmet:categoryInfo?:
     - study_category_classification: StudyCategoryClassification
   - integmet:derivedAbstract?:
-    - derived_abstract: "1-deoxysphingolipids affect cancer cell growth and endocytosis."@en
+    - derived_abstract: "1-deoxysphingolipids affect cancer cell growth and endocytosis."
   - integmet:findings?:
-    - findings: "1,092 structures and 344 formulas assigned to 3,604 metabolite ions."@en
+    - findings: "1,092 structures and 344 formulas assigned to 3,604 metabolite ions."
   - integmet:graphGroup?:
-    - graph_group: "Animalia (without H.sapiens)"@en
+    - graph_group: "Animalia (without H.sapiens)"
   - integmet:hasAnnotatedGOTerm*:
     - has_annotated_go_term: GO:0000045
   - integmet:hasAnnotatedMeSHTerm*:
@@ -61,15 +61,15 @@
   - integmet:isLipidomics?:
     - is_lipidomics_flag: true
   - integmet:observations?:
-    - observations: "1-deoxysphingolipid synthesis in cancer cells"@en
+    - observations: "1-deoxysphingolipid synthesis in cancer cells"
   - integmet:organismAnnotation?:
     - source_derived_organism_annotation_set: SourceDerivedOrganismAnnotationSet
 
-- StudyCategoryClassification integmet_catinfo_res:MTBLS1 integmet_catinfo_res:MTBLS10 integmet_catinfo_res:MTBLS100:
+- StudyCategoryClassification integmet_catinfo_res:MTBLS1:
   - a: integmet:StudyCategoryClassification
   - integmet:category?:
-    - category: "Brain and Nervous System Cancers"@en
+    - category: "Brain and Nervous System Cancers"
   - integmet:categoryBranch:
-    - category_branch: "Chemicals and Drugs"@en
+    - category_branch: "Chemicals and Drugs"
   - integmet:subcategory?:
-    - subcategory: "Acute Inflammation"@en
+    - subcategory: "Acute Inflammation"

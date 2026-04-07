@@ -1,0 +1,40 @@
+study_derived_abstract_by_organism:
+  description: Retrieve study IDs and derived abstracts for studies filtered by organism taxonomy.
+  variables: [ study_id, organism, derived_abstract ]
+  parameters:
+    organism: taxonomy:9606
+  options:
+    distinct: true
+    order_by:
+      - study_id: asc
+      
+study_derived_abstract_and_organism_by_graph_group:
+  description: Retrieve study IDs, derived abstracts, and organisms for studies filtered by graph group.
+  variables: [ study_id, derived_abstract, graph_group, organism ]
+  parameters:
+    graph_group: '"Plantae"@en'
+  options:
+    distinct: true
+    order_by:
+      - study_id: asc
+      - organism: asc
+      
+study_metadata_list:
+  description: Retrieve study metadata including IDs, labels, source information, graph group, abstracts, findings, observations, organisms, and study flags.
+  variables:
+    - study_id
+    - study_label
+    - source_2
+    - was_derived_from
+    - graph_group
+    - derived_abstract
+    - findings
+    - observations
+    - organism
+    - is_lipidomics_flag
+    - has_retention_index_flag
+  options:
+    distinct: true
+    order_by:
+      - study_id: asc
+      - organism: asc
