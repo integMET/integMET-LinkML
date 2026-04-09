@@ -1,6 +1,4 @@
-# neo4j_studydata_to_ttl 
-
-リポジトリ： integMET/integMET-LinkML — `neo4j_studydata_to_ttl` ディレクトリ
+# Neo4j JSON to RDF Converter and TTL to RDF-config YAML Generator
 
 ---
 
