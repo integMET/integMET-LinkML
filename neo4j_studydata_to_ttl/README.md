@@ -2,174 +2,112 @@
 
 ---
 
-## Neo4j JSON to RDF Converter Overview
+## What's this?
 
-This repository contains a Python script that converts Neo4j-derived JSON data into RDF and generates a matching ontology file.
-
-The script reads a JSON graph exported from Neo4j and writes RDF in the following formats:
-
-- Turtle (`.ttl`)
-- N-Triples (`.nt`)
-- JSON-LD (`.jsonld`)
-
-It also generates a corresponding ontology file in Turtle format.
-
-## Files
-
-- `neo4j_study_json_to_rdf_with_ontology.py`  
-  A Python script that converts Neo4j-derived JSON data into RDF and generates an ontology file.
-
-- `neo4j_query_table_data_2026-4-3.json`  
-  Input JSON data used by the script.
-
-## Input JSON
-
-The input JSON was generated from the IntegMet Neo4j data using the Cypher query described in `neo4j_study_json_to_rdf.cypher`.
-
-The JSON has a top-level `graph_json` object containing:
-
-- `nodes`
-- `relationships`
-
-The data includes `Study` nodes and related information such as species metadata, MeSH annotations, GO annotations, analysis groups, and analysis types.
-
-## What the script does
-
-The script reads the Neo4j JSON graph and converts `Study`-centered data into RDF resources.
-
-In particular, it:
-
-- identifies `Study` nodes and creates RDF resources for them
-- uses `Study` or `Nodeid` as the primary study identifier
-- adds LLM-derived text fields such as summaries, observations, and findings
-- adds category information such as branch, category, and subcategory
-- links studies to external resources such as MeSH, GO, NCBI Gene, and OMIM
-- adds organism annotations
-- adds analysis group information and file names
-- maps analysis types such as `LC-MS`, `GC-MS`, and `CE-MS` to RDF terms
-
-## Output files
-
-The script generates the following files from the specified output base name:
-
-- `<output_base>.ttl`
-- `<output_base>.nt`
-- `<output_base>.jsonld`
-- `<output_base>_ontology.ttl`
-
-## Requirements
-
-- Python 3
-- `rdflib`
-
-Install the dependency with:
-
-    pip install rdflib
-
-## Usage
-
-In the current implementation, you need to specify the source JSON data and the output file name in the code.
-
-Run the script with:
-
-    python neo4j_study_json_to_rdf_with_ontology.py
-
-## Current default settings
-
-The current code uses the following default values:
-
-- Input JSON: `neo4j_query_table_data_2026-4-3.json`
-- Output base name: `integmet_study_rdf`
-
-With these settings, the script generates:
-
-- `integmet_study_rdf.ttl`
-- `integmet_study_rdf.nt`
-- `integmet_study_rdf.jsonld`
-- `integmet_study_rdf_ontology.ttl`
-
-## Notes
-
-Some namespace URIs in the script are marked with comments such as `need to change` or `need to check`.
-
-Before publishing or reusing this code, you should review and update these URIs as needed.
+This directory contains a set of tools that convert metabolomics study data stored in a Neo4j graph database into RDF (Resource Description Framework) — and also auto-generate a first draft of RDF-config YAML files from the converted data. It's part of the integMET project's ongoing effort to open up and Linked Data-ify research data.
 
 ---
 
-## RDF-config YAML Generator Overview 
+## Files
 
-This tool is intended for cases such as the following:
+| File | Type | Description |
+|---|---|---|
+| `neo4j_study_json_to_rdf_with_ontology.py` | Python script | Main script — converts Neo4j-exported JSON into RDF and generates an ontology file |
+| `ttl_to_rdfconfig.py` | Python script | Takes the generated TTL files and auto-drafts RDF-config YAML files |
+| `neo4j_study_json_to_rdf.cypher` | Cypher query file | Defines the Cypher queries used to extract Study data from Neo4j |
+| `neo4j_query_table_data_2026-4-3.json` | JSON data | Input data obtained by running the Cypher queries in `neo4j_study_json_to_rdf.cypher` against the Neo4j database |
+| `integmet_study_rdf.ttl` | RDF/Turtle | Converted instance data (Turtle format) |
+| `integmet_study_rdf.jsonld` | JSON-LD | Converted instance data (JSON-LD format) |
+| `integmet_study_rdf_ontology.ttl` | RDF/Turtle | Auto-generated ontology definition file |
 
-- You want to generate RDF-config files from existing RDF/Turtle data.
-- You want a practical first draft of `model.yaml` based on both ontology definitions and actual instance data.
-- You want regenerated YAML to follow updates to `@prefix` aliases or namespace declarations in the source TTL files.
-- You want an initial `description.yaml` draft derived from ontology metadata such as `rdfs:label` and `rdfs:comment`.
+---
 
-The purpose of this script is not to produce a perfect final configuration with no review. Instead, it is designed to generate a stable, reviewable first draft that is easy to refine.
+## Script 1: `neo4j_study_json_to_rdf_with_ontology.py`
 
-## Output Logic
+### Overview
 
-### 1. Prefix extraction
+This script takes JSON graph data extracted from the integMET Neo4j database via Cypher queries, converts it into RDF resources, and generates a corresponding ontology file. The only dependency is Python's `rdflib` — so setup is minimal.
 
-- Both ontology TTL and data TTL are loaded.
-- The script tries to preserve the declaration order of `@prefix` statements.
-- If multiple prefixes point to the same namespace URI, the alias found in the data TTL is preferred.
-- If a namespace is used but not explicitly declared, the script falls back to namespace information available through `rdflib`.
+### Input data structure
 
-### 2. Subject discovery
+The input file (`neo4j_query_table_data_2026-4-3.json`) is obtained by running the Cypher queries defined in `neo4j_study_json_to_rdf.cypher` against the Neo4j database. It follows Neo4j's standard graph output format, with a top-level `graph_json` object containing arrays of `nodes` and `relationships`. The data includes:
 
-- `owl:Class` resources defined in the ontology are detected.
-- The script checks which classes actually appear in the data TTL through `rdf:type`.
-- Classes in the ontology namespace that are used in the data are adopted as modeled subjects.
-- Subject names are generated in CamelCase from class local names.
+- **Study nodes** — entities representing individual research studies
+- **Species metadata** — taxonomic info about the organisms used in experiments
+- **MeSH annotations** — links to diseases and concepts via Medical Subject Headings
+- **GO (Gene Ontology) annotations** — links to gene functions and biological processes
+- **Analysis group info** — group composition and filenames for experimental data
+- **Analysis type info** — measurement method types such as LC-MS, GC-MS, and CE-MS
 
-### 3. Predicate and object generation
+### What the conversion does
 
-- For each class, the script collects predicates actually used by its instances.
-- If an object refers to another typed resource, the target class is inferred.
-- Object names are generated automatically in snake_case while avoiding duplicates.
+The script walks through the input JSON graph and performs the following steps:
 
-### 4. Cardinality inference
+**(a) Turning Study nodes into RDF resources**  
+Each Study node is identified and assigned an RDF URI using its Study ID or Nodeid as the primary key.
 
-Predicate cardinality is inferred from occurrence counts observed in the data TTL.
+**(b) Attaching LLM-generated text fields**  
+Text fields like summary, observations, and findings — generated by a large language model (LLM) — are attached as RDF literals.
 
-- `?` : 0 or 1
-- `*` : 0 or more
-- `+` : 1 or more, with multiple values observed
-- `{n}` : always exactly `n`
-- `{n,m}` : between `n` and `m`
+**(c) Encoding category hierarchy as triples**  
+Each study's field classification — branch, category, and subcategory — is expressed as a set of RDF properties.
 
-This cardinality is an empirical estimate based on the supplied data TTL. It is not a formal ontology guarantee.
+**(d) Linking to external databases**  
+URI links are generated for the following external life science databases, building a knowledge graph in line with Linked Open Data principles:
 
-### 5. Description generation
+- MeSH (Medical Subject Headings)
+- GO (Gene Ontology)
+- NCBI Gene
+- OMIM (Online Mendelian Inheritance in Man)
 
-`description.yaml` descriptions are generated with the following priority:
+**(e) Species annotation**  
+Species information for the experimental organisms is attached as RDF classes and properties.
 
-1. `rdfs:comment`
-2. `rdfs:label`
-3. fallback wording derived from local names
+**(f) Mapping analysis methods to RDF vocabulary**  
+Metabolomics-specific measurement techniques — LC-MS (liquid chromatography–mass spectrometry), GC-MS (gas chromatography–mass spectrometry), CE-MS (capillary electrophoresis–mass spectrometry), etc. — are mapped to the appropriate RDF vocabulary.
 
-## Usage
+### Output files
 
-Edit the configuration block at the top of `ttl_to_rdfconfig.py`.
+Running the script produces the following files:
 
-```python
-ONTOLOGY_TTL_PATH = Path("/path/to/integmet_study_rdf_ontology.ttl")
-DATA_TTL_PATH = Path("/path/to/integmet_study_rdf.ttl")
-OUTPUT_DIR = Path("/path/to/output")
-EXAMPLES_PER_CLASS = 3
-```
+| File | Format |
+|---|---|
+| `<output_base>.ttl` | RDF instance data in Turtle format |
+| `<output_base>.nt` | RDF instance data in N-Triples format |
+| `<output_base>.jsonld` | RDF instance data in JSON-LD format |
+| `<output_base>_ontology.ttl` | Ontology definition file in Turtle format |
 
-Meaning of each setting:
+---
 
-- `ONTOLOGY_TTL_PATH`: path to the ontology TTL file
-- `DATA_TTL_PATH`: path to the instance/data TTL file
-- `OUTPUT_DIR`: output directory for generated YAML files
-- `EXAMPLES_PER_CLASS`: number of example instances to include in each `model.yaml` subject header
+## Script 2: `ttl_to_rdfconfig.py`
 
-After editing the settings, run:
+### Overview
 
-```bash
-python ttl_to_rdfconfig.py
-```
+This script takes the Turtle (TTL) files generated above (both instance data and ontology) and auto-generates a first draft of RDF-config YAML files. RDF-config is a configuration format for describing SPARQL endpoints and their interfaces — and this script saves a lot of manual writing effort.
 
+### How it works
+
+The script runs through five stages:
+
+**(1) Extracting and ordering prefixes**  
+It reads both the ontology TTL and data TTL, collecting namespace aliases while preserving `@prefix` declaration order as much as possible. When the same namespace URI has multiple aliases, the one used in the data TTL takes priority.
+
+**(2) Discovering subject classes**  
+It detects resources defined as `owl:Class` in the ontology, then filters down to only those actually used via `rdf:type` triples in the data TTL. Subject names are auto-generated in CamelCase from the class local names.
+
+**(3) Generating predicates and objects**  
+It collects all predicates actually used for each class's instances. When an object references a typed resource from another class, the target class is inferred. Predicate and object names are auto-generated in snake_case, with duplicates avoided.
+
+**(4) Inferring cardinality**  
+It counts actual predicate occurrences in the data TTL and expresses them using the following notation. Note that these are empirical estimates based on the supplied data, not formal ontology guarantees.
+
+| Symbol | Meaning |
+|---|---|
+| `?` | 0 or 1 time |
+| `*` | 0 or more times |
+| `+` | 1 or more times, with multiple occurrences observed |
+| `{n}` | Always exactly n times |
+| `{n,m}` | Between n and m times |
+
+**(5) Generating `description.yaml`**  
+It pulls descriptions from `rdfs:comment`, `rdfs:label`, or a fallback string derived from the local name — in that priority order — and auto-generates a first draft of `description.yaml`.
