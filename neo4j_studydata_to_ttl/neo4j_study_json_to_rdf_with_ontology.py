@@ -271,7 +271,7 @@ def add_measurement_technique(graph: Graph, subject, analysis_type_value) -> str
         graph.add((subject, predicate, obj))
         return "mapped"
 
-    graph.add((subject, predicate, Literal(text, datatype=XSD.string)))
+    graph.add((subject, predicate, Literal(text)))
     return "literal"
 
 
@@ -400,7 +400,7 @@ def build_rdf(input_json: str, output_base: str) -> None:
 
         rdf_graph.add((subject, RDF.type, INTEGMET.Study))
         rdf_graph.add((subject, RDF.type, DCAT.Dataset))
-        rdf_graph.add((subject, DC.identifier, Literal(str(study_id), datatype=XSD.string)))
+        rdf_graph.add((subject, DC.identifier, Literal(str(study_id))))
         rdf_graph.add((subject, RDFS.label, Literal(str(study_id), lang="en")))
 
         if source_ns_name == "metabolights":
@@ -506,7 +506,7 @@ def build_rdf(input_json: str, output_base: str) -> None:
             for suffix in sorted(species_numeric):
                 rdf_graph.add((organism_set, INTEGMET.organism, URIRef(str(TAXONOMY) + suffix)))
             for raw in sorted(species_unresolved):
-                rdf_graph.add((organism_set, INTEGMET.unresolvedTaxonomy, Literal(raw, datatype=XSD.string)))
+                rdf_graph.add((organism_set, INTEGMET.unresolvedTaxonomy, Literal(raw)))
 
         # Incoming AnalyticsGroup nodes
         for rel in rels_by_end.get(node["elementId"], []):
@@ -528,11 +528,11 @@ def build_rdf(input_json: str, output_base: str) -> None:
             rdf_graph.add((b, RDF.type, INTEGMET.AnalysisGroup))
 
             if analytics_identifier not in (None, ""):
-                rdf_graph.add((b, DC.identifier, Literal(str(analytics_identifier), datatype=XSD.string)))
+                rdf_graph.add((b, DC.identifier, Literal(str(analytics_identifier))))
                 rdf_graph.add((b, RDFS.label, Literal(str(analytics_identifier), lang="en")))
 
             if analytics_props.get("FileName") not in (None, ""):
-                rdf_graph.add((b, NFO.fileName, Literal(str(analytics_props["FileName"]), datatype=XSD.string)))
+                rdf_graph.add((b, NFO.fileName, Literal(str(analytics_props["FileName"]))))
 
             seen_analysis_types = set()
             for ag_rel in rels_by_start.get(analytics_node["elementId"], []):
